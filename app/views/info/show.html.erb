@@ -1,0 +1,45 @@
+
+<% content_for :header_tags do %>
+<%= stylesheet_link_tag 'redmine_info.css', :plugin => 'redmine_information' %>
+<% end %>
+
+<% if (is_admin_only?(@icat)) %>
+<h2 class='icon icon-lock'>
+<% else %>
+<h2>
+<% end %>
+<%= l InfoCategory.caption(@icat)  %>
+</h2>
+
+
+<% if is_shown?(@icat)
+     page = 'info/' + @icat.to_s %>
+<%=  render(:partial => page) %>
+<% else %>
+
+<div class="nodata">
+  <%= h l(:text_no_public) %>
+</div>
+
+<% end %>
+
+<% content_for :sidebar do %>
+  <h3><%=l(:label_info_categories)%></h3>
+  <div id="admin-menu">
+    <ul>
+      <%= render_menu :redmine_info_menu %>
+    </ul>
+  </div>
+
+  <% if User.current.admin? %>
+    <h3><%=l(:label_administration)%></h3>
+    <%= render :partial => 'admin/menu' %>
+  <% end %>
+<% end %>
+
+<%
+unless (@icat == :version)
+  html_title(l InfoCategory.caption(@icat))
+end
+%>
+<% html_title(l(:label_redmine_info)) %>
