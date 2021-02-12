@@ -7,6 +7,11 @@
 <% if @workflow_counts.empty? %>
 <p class="nodata"><%= l(:label_no_data) %></p>
 <% else %>
+<p><label><%=l(:label_workspace)%>:
+  <select id="workspace_id" class="expandable" onchange="refresh_table(this.value);">
+    <%= options_for_select(@workspaces.pluck(:name, :id).to_a, @workspace ? @workspace[:id] : "") %>
+  </select>
+</label></p>
 <div class="autoscroll">
 <table class="list">
 <thead>
@@ -22,39 +27,40 @@
     </tr>
 </thead>
 <tbody>
-<% @workflow_counts.each do |tracker, roles| -%>
+<% @workflow_counts.each do |tracker, roles| %>
 <tr class="<%= cycle('odd', 'even') %>">
   <%= content_tag('td', tracker, ((tracker == @tracker) ? {:class=>"selected"} : {})) %>
   <% roles.each do |role, count|
-      next    if @workflow_all_ng_roles.include?(role)  -%>
-    <% if (role == @role and tracker == @tracker) %>
-      <%= content_tag('td', count, {:class=>'target', :align=>'center'}) %>
-    <% else %>
-      <td align="center">
-      <% if (count > 0) %>
-        <%= link_to(count, {:id => :workflows,
-	                    :role_id => role, :tracker_id => tracker}) %>
-      <% else %>
-         0
-      <% end %>
-      </td>
+      next if @workflow_all_ng_roles.include?(role) %>
+    <td align="center">
+    <% count.each do |workspace, count| %>
+      <span class="ws ws<%= workspace %>" style="display: none;">
+        <% if (count > 0) %>
+          <%= link_to(count, {:id => :workflows,
+              :role_id => role, :tracker_id => tracker, :workspace_id => workspace}) %>
+        <% else %>
+          -
+        <% end %>
+      </span>
     <% end %>
-  <% end -%>
+    </td>
+  <% end %>
 </tr>
-<% end -%>
+<% end %>
 </tbody>
 </table>
-  <% unless @workflow_all_ng_roles.empty? %>
-    <%=h l(:label_all_ng) %> :
-    <%=h @workflow_all_ng_roles.map{|role| role.name }.join(', ') %>
-  <% end %>
 </div>
+<script>
+  function refresh_table(value) {
+    $('.ws').css("display","none");
+    $('.ws' + value).css("display","inline");
+  }
+  refresh_table(document.getElementById('workspace_id').value);
+</script>
 <% end %>
 
-
-
 <% if @tracker && @role && @statuses.any?
-   target_title = "#{@role.name} - #{@tracker}"
+   target_title = "#{l(:label_workspace)}: #{@workspace} - #{l(:label_tracker)}: #{@tracker} - #{l(:label_role)}: #{@role.name}"
 %>
 
 <h3> <%=h target_title %> </h3>
@@ -78,4 +84,3 @@
 <%     end %>
 
 <% end %>
-
