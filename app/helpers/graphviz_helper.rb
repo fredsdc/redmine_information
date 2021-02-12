@@ -3,7 +3,7 @@ require 'kconv'
 module GraphvizHelper
 
   include InfoHelper
-  
+
   def dot_line(name, options = {})
     line = name.to_s + " "
     unless options.empty?
@@ -20,10 +20,10 @@ module GraphvizHelper
     opts['dir'] = 'both'	if isboth
     dot_line("#{a} -> #{b}", opts)
   end
-  
+
   def dot_digraph(name, &blk)
     str = "digraph #{name} {"
-    str += yield 
+    str += yield
     str += "}"
   end
 
@@ -31,14 +31,13 @@ module GraphvizHelper
     "\"#{str}\""
   end
 
-
   def create_dot_statuses(statuses, uses)
     opt = {}
     str = ""
     statuses.each {|sts|
       next 	unless uses.include?(sts.position)
       opt.clear
-      if (sts.is_default?)
+      if (sts.id == @tracker.default_status_id)
         opt['style'] = 'filled'
         opt['fillcolor'] = quote 'yellow'
       elsif (sts.is_closed?)
@@ -50,7 +49,6 @@ module GraphvizHelper
     }
     str
   end
-
 
   def create_dot_workflow(statuses, wf, subwf)
     str = ""
@@ -73,7 +71,6 @@ module GraphvizHelper
     [str, uses.uniq]
   end
 
-
   def create_dot_digraph_workflow(graphname, statuses, wf, subwf)
     dot_digraph(quote graphname) {
       str = "ranksep = 0.3; graph [fontname=Times]; edge [fontname=Times]; node [fontname=Times];"
@@ -84,7 +81,6 @@ module GraphvizHelper
       str += struses.first
     }
   end
-
 
   def exec_dot(src)
     dest = ""
@@ -130,7 +126,7 @@ module GraphvizHelper
     end
     {:svg=>dest, :err=>errstr}
   end
-  
+
   def create_workflow_chart(graphname, statuses, wf, subwf)
     results = exec_dot(create_dot_digraph_workflow(graphname, statuses, wf, subwf))
     output = results[:svg]
@@ -139,5 +135,5 @@ module GraphvizHelper
     end
     output
   end
-  
+
 end

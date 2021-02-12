@@ -2,7 +2,7 @@ require 'rails/info'
 
 class InfoController < ApplicationController
   unloadable
-  
+
   before_filter :require_login
 
   helper :info
@@ -15,38 +15,29 @@ class InfoController < ApplicationController
     @permissions = Redmine::AccessControl.permissions.select { |p| !p.public? }
   end
 
-
   def workflows
-    wfclass = nil
-    if Redmine::VERSION::MAJOR == 2 and Redmine::VERSION::MINOR < 1
-      wfclass = Workflow
-    else
-      wfclass = WorkflowTransition
-    end
-    @workflow_counts = wfclass.count_by_tracker_and_role
-    @workflow_all_ng_roles = find_all_ng_roles(@workflow_counts)
-
-    @roles = Role.find(:all, :order => 'builtin, position')
+    @roles = Role.order('builtin, position').all
     @role = Role.find_by_id(params[:role_id])
 
-    @trackers = Tracker.find(:all, :order => 'position')
-    @tracker = Tracker.find_by_id(params[:tracker_id])    
-    
+    @trackers = Tracker.order('position').all
+    @tracker = Tracker.find_by_id(params[:tracker_id])
+
     if @tracker && @tracker.issue_statuses.any?
       @statuses = @tracker.issue_statuses
     end
-    @statuses ||= IssueStatus.find(:all, :order => 'position')
+    @statuses ||= IssueStatus.order('position').all
 
     if (@tracker && @role && @statuses.any?)
-      workflows = wfclass.all(:conditions => {:role_id => @role.id, :tracker_id => @tracker.id})
+      workflows = WorkflowTransition.where(:role_id => @role.id, :tracker_id => @tracker.id).all
       @workflows = {}
       @workflows['always'] = workflows.select {|w| !w.author && !w.assignee}
       @workflows['author'] = workflows.select {|w| w.author}
       @workflows['assignee'] = workflows.select {|w| w.assignee}
     end
-      
-  end
 
+    @workflow_counts = count_by_tracker_and_role(@trackers, @roles, WorkflowTransition)
+    @workflow_all_ng_roles = find_all_ng_roles(@workflow_counts)
+  end
 
   def settings
     # Mail Notification
@@ -93,14 +84,11 @@ class InfoController < ApplicationController
         @commit_logtime_activity_name = activity.name	if (activity)
       end
     end
-
   end
-  
 
   def plugins
     @plugins = Redmine::Plugin.all
   end
-
 
   def show
     @icat = params[:id]
@@ -110,15 +98,13 @@ class InfoController < ApplicationController
     when 'settings'; settings;
     when 'plugins'; plugins;
     when 'version'
-      @db_adapter_name = ActiveRecord::Base.connection.adapter_name 
+      @db_adapter_name = ActiveRecord::Base.connection.adapter_name
     end
   end
-
 
   def index
   end
 
-  
   private
   def find_all_ng_roles(workflow_counts)
     roles_map = {}
@@ -134,5 +120,21 @@ class InfoController < ApplicationController
     }
     return all_ng_roles
   end
-  
+
+  private
+  def count_by_tracker_and_role(trackers, roles, workflow_transitions)
+    transitions = workflow_transitions.where.not(old_status_id: 0).group(:tracker_id, :role_id).count
+
+    result = []
+    trackers.each do |tracker|
+      t = []
+      roles.each do |role|
+        count = transitions[[tracker.id, role.id]] || 0
+        t << [role, count]
+      end
+      result << [tracker, t]
+    end
+
+    result
+  end
 end
