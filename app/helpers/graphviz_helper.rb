@@ -76,7 +76,7 @@ module GraphvizHelper
 
   def create_dot_digraph_workflow(graphname, statuses, wf, subwf)
     dot_digraph(quote graphname) {
-      str = "ranksep = 0.3;"
+      str = "ranksep = 0.3; graph [fontname=Times]; edge [fontname=Times]; node [fontname=Times];"
       opt = {'shape' => 'box', 'margin' => '0.05'}
       str += dot_line('node', opt)
       struses = create_dot_workflow(statuses, wf, subwf)
