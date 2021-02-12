@@ -1,0 +1,21 @@
+pt-BR:
+  label_redmine_info: Informações
+
+  label_info_categories: Categorias de Informação
+  label_hide_info_categories: Esconder as categorias de informação
+  label_workflow_chart: Gráfico de workflow
+  label_use_dot: Usar Graphviz(dot)
+  label_dot_cmdpath: Caminho do arquivo "dot"
+  descript_dot_cmdpath: Se estiver em branco, "dot" será usado.
+
+  label_wiki_macros: Macros Wiki
+  label_rails_info: Informações do Rails
+
+  label_all_ng: ALL NG
+
+  text_no_public: "Informações nesta categorias são privadas."
+  text_err_dot: Comando dot falhou.
+  text_no_rails_info: "Não consigo ver as informações do Rails nesta versão."
+
+  label_notification: Notificação
+  label_action: Ação
