@@ -3,7 +3,7 @@ require 'rails/info'
 class InfoController < ApplicationController
   unloadable
 
-  before_filter :require_login
+  before_action :require_login
 
   helper :info
   include InfoHelper
