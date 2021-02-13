@@ -36,8 +36,12 @@
     <% count.each do |workspace, count| %>
       <span class="ws ws<%= workspace %>" style="display: none;">
         <% if (count > 0) %>
-          <%= link_to(count, {:id => :workflows,
-              :role_id => role, :tracker_id => tracker, :workspace_id => workspace}) %>
+          <% if (role == @role and tracker == @tracker and workspace == @workspace[:id]) %>
+            <%= count %>
+          <% else %>
+            <%= link_to(count, {:id => :workflows,
+                :role_id => role, :tracker_id => tracker, :workspace_id => workspace}) %>
+          <% end %>
         <% else %>
           -
         <% end %>
