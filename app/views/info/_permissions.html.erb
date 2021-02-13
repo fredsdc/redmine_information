@@ -1,4 +1,4 @@
-	
+
 <div class="autoscroll">
 <table class="list permissions">
 <thead>
@@ -16,12 +16,12 @@
 <% perms_by_module.keys.sort.each do |mod| %>
     <% unless mod.blank? %>
         <tr class="group open">
-          <td>
+          <th>
             <span class="expander" onclick="toggleRowGroup(this); return false;">&nbsp;</span>
             <%= l_or_humanize(mod, :prefix => 'project_module_') %>
-          </td>
+          </th>
           <% @roles.each do |role| %>
-          <td class="role"><%= h(role.name) %></td>
+          <th class="role"><%= h(role.name) %></th>
           <% end %>
         </tr>
     <% end %>
@@ -34,7 +34,7 @@
         <td align="center">
         <% if role.setable_permissions.include? permission %>
           <% if role.permissions.include?(permission.name) %>
-              <span class="icon icon-checked"></span>
+              <span style="padding-left: 10px;" class="icon icon-checked"></span>
           <% else %>
 	      -
           <% end %>
