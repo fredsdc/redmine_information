@@ -23,7 +23,7 @@ end
 
 Redmine::MenuManager.map :redmine_info_menu do |menu|
   InfoCategory.push_menu(menu, :permissions, :html => {:class => 'roles'})
-  InfoCategory.push_menu(menu, :workflows)                                    
+  InfoCategory.push_menu(menu, :workflows)
   InfoCategory.push_menu(menu, :settings)
   InfoCategory.push_menu(menu, :plugins)
   InfoCategory.push_menu(menu, :wiki_macros)
