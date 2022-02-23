@@ -3,6 +3,11 @@
 <%= stylesheet_link_tag 'redmine_info.css', :plugin => 'redmine_information' %>
 <% end %>
 
+<% if User.current.admin? & @workspace.present? & @role.present? & @tracker.present? %>
+<div class="contextual">
+  <a class="icon icon-edit"><%= link_to l(:button_edit), :controller => 'workflows', :action => 'edit', :role_id => @role.id, :tracker_id => @tracker.id, :workspace_id => @workspace.id %></a>
+</div>
+<% end %>
 <p><label><%=l(:label_workspace)%>:
   <select id="workspace_id" class="expandable" onchange="location.href=location.href.split('?')[0] + '?workspace_id=' + this.options[this.selectedIndex].value;">
     <%= options_for_select(@workspaces.pluck(:name, :id), @workspace.id) %>
