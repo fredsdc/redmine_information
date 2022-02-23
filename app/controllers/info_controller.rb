@@ -19,10 +19,10 @@ class InfoController < ApplicationController
     @workspaces = Workspace.all.sorted
     @workspace = Workspace.find_by_id(params[:workspace_id]) || Workspace.first
 
-    @roles = Role.find(WorkflowTransition.where(workspace_id: @workspace[:id]).pluck(:role_id).uniq)
+    @roles = Role.where(id: WorkflowTransition.where(workspace_id: @workspace.id).pluck(:role_id)).sorted
     @role = Role.find_by_id(params[:role_id])
 
-    @trackers = Tracker.find(WorkflowTransition.where(workspace_id: @workspace[:id]).pluck(:tracker_id).uniq)
+    @trackers = Tracker.where(id: WorkflowTransition.where(workspace_id: @workspace[:id]).pluck(:tracker_id)).sorted
     @tracker = Tracker.find_by_id(params[:tracker_id])
 
     @statuses = @tracker ? (@tracker.issue_statuses & @workspace.issue_statuses) : []
