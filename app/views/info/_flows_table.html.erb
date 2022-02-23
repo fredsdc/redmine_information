@@ -1,15 +1,14 @@
 <table class="list">
 <thead>
   <tr>
-    <th align="left"> <%=l(:label_current_status)%> </th>
+    <th align="center" rowspan="2"> <%=l(:label_current_status)%> </th>
     <th align="center" colspan="<%= @statuses.length %>"><%=l(:label_new_statuses_allowed)%></th>
   </tr>
   <tr>
-    <td></td>
     <% for new_status in @statuses %>
-    <td width="<%= 75 / @statuses.size %>%" align="center">
+    <th width="<%= 75 / @statuses.size %>%" align="center">
       <%=h new_status.name %>
-    </td>
+    </th>
     <% end %>
   </tr>
 </thead>
@@ -31,7 +30,3 @@
   <% end %>
 </tbody>
 </table>
-
-<% if Setting.plugin_redmine_information['use_dot'] %>
-  <%= raw create_workflow_chart(target_title, @statuses, workflows, sub_workflows) %>
-<% end %>

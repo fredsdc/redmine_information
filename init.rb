@@ -10,8 +10,6 @@ Redmine::Plugin.register :redmine_information do
   author_url 'http://yohshiy.blog.fc2.com/'
 
   setmap = InfoCategory.hide_map();
-  setmap[:use_dot] = false
-  setmap[:dot_cmdpath] = 'dot'
   settings(:default => setmap,
            :partial => 'settings/info_settings')
   menu(:top_menu, :redmine_info,

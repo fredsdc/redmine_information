@@ -3,49 +3,37 @@
 <%= stylesheet_link_tag 'redmine_info.css', :plugin => 'redmine_information' %>
 <% end %>
 
-
-<% if @workflow_counts.empty? %>
-<p class="nodata"><%= l(:label_no_data) %></p>
-<% else %>
 <p><label><%=l(:label_workspace)%>:
-  <select id="workspace_id" class="expandable" onchange="refresh_table(this.value);">
-    <%= options_for_select(@workspaces.pluck(:name, :id).to_a, @workspace ? @workspace[:id] : "") %>
+  <select id="workspace_id" class="expandable" onchange="location.href=location.href.split('?')[0] + '?workspace_id=' + this.options[this.selectedIndex].value;">
+    <%= options_for_select(@workspaces.pluck(:name, :id), @workspace.id) %>
   </select>
 </label></p>
+<% if @workflow_counts.select{|i| i.last == @workspace.id}.empty? %>
+<p class="nodata"><%= l(:label_no_data) %></p>
+<% else %>
 <div class="autoscroll">
 <table class="list">
 <thead>
     <tr>
     <th></th>
-    <% @workflow_counts.first.last.each do |role, count|
-      next    if @workflow_all_ng_roles.include?(role)
-      hclass = (role == @role) ? {:class=>"selected"} : {} %>
-      <%= content_tag('th', hclass) do
-            content_tag(role.builtin? ? 'em' : 'span', h(role.name))
-          end %>
+    <% @roles.each do |role| %>
+      <%= content_tag 'th', role == @role ? {:class=>"selected"} : {} do %>
+        <%= content_tag role.builtin? ? 'em' : 'span', h(role.name) %>
+      <% end %>
     <% end %>
     </tr>
 </thead>
 <tbody>
-<% @workflow_counts.each do |tracker, roles| %>
+<% @trackers.each do |tracker| %>
 <tr class="<%= cycle('odd', 'even') %>">
-  <%= content_tag('td', tracker, ((tracker == @tracker) ? {:class=>"selected"} : {})) %>
-  <% roles.each do |role, count|
-      next if @workflow_all_ng_roles.include?(role) %>
+  <%= content_tag 'td', tracker, tracker == @tracker ? {:class=>"selected"} : {} %>
+  <% @roles.each do |role| %>
     <td align="center">
-    <% count.each do |workspace, count| %>
-      <span class="ws ws<%= workspace %>" style="display: none;">
-        <% if (count > 0) %>
-          <% if (role == @role and tracker == @tracker and workspace == @workspace[:id]) %>
-            <%= count %>
-          <% else %>
-            <%= link_to(count, {:id => :workflows,
-                :role_id => role, :tracker_id => tracker, :workspace_id => workspace}) %>
-          <% end %>
-        <% else %>
-          -
-        <% end %>
-      </span>
+    <% if @workflow_counts[[tracker.id, role.id, @workspace.id]] %>
+      <%= link_to(@workflow_counts[[tracker.id, role.id, @workspace.id]], {:id => :workflows,
+                 :role_id => role.id, :tracker_id => tracker.id, :workspace_id => @workspace.id}) %>
+    <% else %>
+      -
     <% end %>
     </td>
   <% end %>
@@ -54,37 +42,24 @@
 </tbody>
 </table>
 </div>
-<script>
-  function refresh_table(value) {
-    $('.ws').css("display","none");
-    $('.ws' + value).css("display","inline");
-  }
-  refresh_table(document.getElementById('workspace_id').value);
-</script>
 <% end %>
 
-<% if @tracker && @role && @statuses.any?
-   target_title = "#{l(:label_workspace)}: #{@workspace} - #{l(:label_tracker)}: #{@tracker} - #{l(:label_role)}: #{@role.name}"
-%>
+<% if @tracker && @role && @statuses.any? %>
+  <%= javascript_include_tag "d3.v3.min.js", :plugin => :redmine_information %>
+  <%= javascript_include_tag "dagre-d3.min.js", :plugin => :redmine_information %>
+  <%= javascript_include_tag "saveSvgAsPng.js", :plugin => :redmine_information %>
+  <%= stylesheet_link_tag "workflows.css", :plugin => :redmine_information %>
 
-<h3> <%=h target_title %> </h3>
+  <% target_title = "#{l(:label_role)}: #{@role.name}" %>
+  <% for name in ['always', 'author', 'assignee'] %>
+    <h3><%=h name == 'always' ? target_title : t('label_additional_workflow_transitions_for_' + name)%></h3>
 
-
-<%=    render(:partial => 'info/flows_table',
-              :locals => {:target_title => target_title, :workflows => @workflows['always'],
-			  :sub_workflows => false}) %>
-
-<%     for name in ['author', 'assignee'] %>
-
-<h4><%= t('label_additional_workflow_transitions_for_' + name) %></h4>
-
-<%       if (workflows_empty?(@statuses, @workflows[name])) %>
-<p> <%= l(:label_no_data) %> </p>
-<%        else %>
-<%= render(:partial => 'info/flows_table',
-           :locals => {:target_title => target_title, :workflows => @workflows[name],
-		       :sub_workflows => @workflows['always']}) %>
-<%       end %>
-<%     end %>
-
+    <% if @workflows.select{|t| t[name] == true}.any? || name == 'always' %>
+      <%= render :partial => 'info/workflow_graph', :locals => {
+                 :tracker => @tracker, :roles => @roles, :role => @role,
+                 :workflows => @workflows, :name => name } %>
+    <% else %>
+      <p> <%= l(:label_no_data) %> </p>
+    <% end %>
+  <% end %>
 <% end %>

@@ -16,35 +16,22 @@ class InfoController < ApplicationController
   end
 
   def workflows
-    @roles = Role.order('builtin, position').all
+    @workspaces = Workspace.all.sorted
+    @workspace = Workspace.find_by_id(params[:workspace_id]) || Workspace.first
+
+    @roles = Role.find(WorkflowTransition.where(workspace_id: @workspace[:id]).pluck(:role_id).uniq)
     @role = Role.find_by_id(params[:role_id])
 
-    @trackers = Tracker.order('position').all
+    @trackers = Tracker.find(WorkflowTransition.where(workspace_id: @workspace[:id]).pluck(:tracker_id).uniq)
     @tracker = Tracker.find_by_id(params[:tracker_id])
 
-    @workspaces = Workspace.all.sorted
-    @workspace = Workspace.find_by_id(params[:workspace_id])
+    @statuses = @tracker ? (@tracker.issue_statuses & @workspace.issue_statuses) : []
 
-    if @tracker && @tracker.issue_statuses.any?
-      @statuses = @tracker.issue_statuses
-    end
-    @statuses ||= IssueStatus.order('position').all
-
-    if @workspace && @workspace.issue_statuses.any?
-      @statuses &= @workspace.issue_statuses
+    if (@tracker && @statuses.any?)
+      @workflows = WorkflowTransition.where(:tracker_id => @tracker.id, :workspace_id => @workspace.id)
     end
 
-    if (@tracker && @role && @statuses.any?)
-      workflows = WorkflowTransition.where(:role_id => @role.id, :tracker_id => @tracker.id).all
-      workflows = workflows.where(workspace_id: @workspace[:id]) if @workspace && @workspace[:id]
-      @workflows = {}
-      @workflows['always'] = workflows.select {|w| !w.author && !w.assignee}
-      @workflows['author'] = workflows.select {|w| w.author}
-      @workflows['assignee'] = workflows.select {|w| w.assignee}
-    end
-
-    @workflow_counts = count_by_tracker_and_role(@trackers, @roles, @workspaces, WorkflowTransition)
-    @workflow_all_ng_roles = find_all_ng_roles(@workflow_counts)
+    @workflow_counts = WorkflowTransition.where.not(old_status_id: 0).group(:tracker_id, :role_id, :workspace_id).count
   end
 
   def settings
@@ -111,43 +98,5 @@ class InfoController < ApplicationController
   end
 
   def index
-  end
-
-  private
-  def find_all_ng_roles(workflow_counts)
-    roles_map = {}
-    workflow_counts.each do |tracker, roles|
-      roles.each do |role, count|
-        roles_map[role] = 0 unless roles_map[role]
-        roles_map[role] += count.values.reduce(:+)
-      end
-    end
-
-    all_ng_roles = []
-    roles_map.each {|role, count|
-      all_ng_roles << role if (count == 0)
-    }
-
-    return all_ng_roles
-  end
-
-  private
-  def count_by_tracker_and_role(trackers, roles, workspaces, workflow_transitions)
-    transitions = workflow_transitions.where.not(old_status_id: 0).group(:tracker_id, :role_id, :workspace_id).count
-
-    result = []
-    trackers.each do |tracker|
-      t = []
-      roles.each do |role|
-        count = {}
-        workspaces.each do |workspace|
-          count[workspace[:id]] = transitions[[tracker.id, role.id, workspace.id]] || 0
-        end
-        t << [role, count]
-      end
-      result << [tracker, t]
-    end
-
-    result
   end
 end

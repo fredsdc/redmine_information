@@ -1,0 +1,113 @@
+<div class="box" >
+  <div class="contextual" style="display:none;" id="graphContextual-<%= name %>">
+    <a class="icon icon-save" id="graphSavePng-<%= name %>"><%= l(:button_save) %></a>
+  </div>
+  <h3>
+    <%= l(:label_workflow) %>: <%= tracker.name %>
+  </h3>
+  <% unless roles.empty? %>
+    <h4>
+      <%= roles.length == 1 ? l(:label_role) : l(:label_role_plural) %>:
+      <% roles.each do |r| %>
+        <span class='role-<%= r.id %>-<%= name %>' onmouseover="aglow('.role-<%= r.id %>-<%= name %>')" onmouseout="uglow('.role-<%= r.id %>-<%= name %>')">
+          <%= r.name %><%= r == roles.last ? "" : "," %>
+        </span>
+      <% end %>
+    </h4>
+  <% end %>
+  <div class="workflowGraph">
+    <svg id="workflow-vis-<%= name %>">
+      <filter id="glow-<%= name %>" filterUnits="userSpaceOnUse">
+        <feGaussianBlur in="SourceAlpha" stdDeviation="0"></feGaussianBlur>
+        <feOffset dx="0" dy="0" result="offsetblur"></feOffset>
+        <feFlood flood-color="rgb(206, 223, 14)"></feFlood>
+        <feComposite in2="offsetblur" operator="in"></feComposite>
+        <feMerge>
+          <feMergeNode in="SourceGraphic"></feMergeNode>
+          <feMergeNode></feMergeNode>
+        </feMerge>
+      </filter>
+      <g></g>
+    </svg>
+  </div>
+</div>
+
+<script type="text/javascript">
+$(function() {
+  var json = <%= build_json(role, tracker, workflows, name).to_json.html_safe %>;
+
+  var renderer = new dagreD3.Renderer();
+  var oldDrawNodes = renderer.drawNodes();
+  renderer.drawNodes(function(graph, root) {
+    var svgNodes = oldDrawNodes(graph, root);
+    svgNodes.attr("id", function(u) { return "node-" + u; });
+    svgNodes.attr('class', function(u) {
+      var cls = graph.node(u).nodeclass || '';
+      return 'node ' + cls;
+    });
+    return svgNodes;
+  });
+
+  var oldDrawEdgePaths = renderer.drawEdgePaths();
+  renderer.drawEdgePaths(function(graph, root) {
+    var svgEdgePaths = oldDrawEdgePaths(graph, root);
+    svgEdgePaths.attr('class', function(u) {
+      var cls = graph.edge(u).edgeclass || '';
+      return 'edgePath ' + cls;
+    });
+    return svgEdgePaths;
+  });
+
+  var layout = dagreD3.layout()
+    .edgeSep(12)
+    .nodeSep(40)
+    .rankSep(50)
+    .rankDir("LR");
+  layout = renderer.layout(layout).run(dagreD3.json.decode(json.nodes, json.edges), d3.select("#workflow-vis-<%= name %> g"));
+
+  var cw = $('div#content').width();
+  var dw = $('.workflowGraph').width();
+  var dh = $(window).height();
+  var aw = $('.workflowGraph').parent().hasClass("box");
+  var t = cw >= 900 ? 20 : 5;
+  var gw = layout.graph().width;
+  var gh = layout.graph().height;
+  var w = aw ? dw : Math.min(cw - 2 * t, gw + 2 * t);
+  var h = Math.min($(window).height() - 2 * t, gh + 2 * t);
+  var s = Math.min((w - 2 * t) / gw, (h - 2 * t) / gh);
+  if (! aw) {
+    w  = gw * s + 2 * t;
+  }
+  h = gh * s + 2 * t;
+  if (h < dh * .4) {
+    h = dh * .4;
+  }
+  $('#workflow-vis-<%= name %>').attr('width', w).attr('height', h);
+  w = $('.workflowGraph').width();
+  $('#workflow-vis-<%= name %>').attr('width', w);
+  var tw = (w - gw * s) / 2;
+  t = (h - gh * s) / 2;
+  var transform = 'translate(' + tw + ',' + t + ')';
+  if (s < 1) {
+    transform += 'scale(' + s + ')';
+  }
+  d3.select("#workflow-vis-<%= name %> g").attr("transform", transform);
+  $('#glow-<%= name %>').attr({"height":gh, "width":gw, "x":0, "y":0});
+
+  // save as PNG only works in Firefox and Chrome
+  if (/firefox/i.test(navigator.userAgent) || /chrome/i.test(navigator.userAgent)) {
+    $('#graphContextual-<%= name %>').show();
+    $('#graphSavePng-<%= name %>').click(function() {
+      saveSvgAsPng(document.getElementById("workflow-vis-<%= name %>"), "workflow.png", 3);
+    });
+  }
+});
+function aglow(what) {
+  $(what).css("filter","url(#glow-<%= name %>)");
+  $(what).css("color","rgb(190, 210, 30);");
+}
+function uglow(what) {
+  $(what).css("filter","");
+  $(what).css("color","");
+}
+</script>
