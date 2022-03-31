@@ -3,9 +3,9 @@
 <table class="list permissions">
 <thead>
     <tr>
-    <th><%=l(:label_permissions)%></th>
+    <th ondblclick="show_rows();"><%=l(:label_permissions)%></th>
     <% @roles.each do |role| %>
-    <th>
+    <th ondblclick="hide_row(this);">
         <%= content_tag(role.builtin? ? 'em' : 'span', h(role.name)) %>
     </th>
     <% end %>
@@ -47,3 +47,17 @@
 </tbody>
 </table>
 </div>
+<%= javascript_tag do %>
+  function hide_row(el) {
+    index = $(el).index() + 1;
+    $('thead tr th:nth-child('+index+')').hide();
+    $('tbody tr th:nth-child('+index+')').hide();
+    $('tbody tr td:nth-child('+index+')').hide();
+  }
+
+  function show_rows() {
+    $('thead tr th').show();
+    $('tbody tr th').show();
+    $('tbody tr td').show();
+  }
+<% end %>
