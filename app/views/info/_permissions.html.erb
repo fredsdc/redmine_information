@@ -3,21 +3,85 @@
 <table class="list permissions">
 <thead>
     <tr>
-    <th ondblclick="show_rows();"><%=l(:label_permissions)%></th>
+    <th ondblclick="show_rows();">
+      <span class="icon icon-expended" onclick="toggleRowGroup(this); return false;">&nbsp;</span>
+      <%=l(:label_permissions)%>
+    </th>
     <% @roles.each do |role| %>
     <th ondblclick="hide_row(this);">
         <%= content_tag(role.builtin? ? 'em' : 'span', h(role.name)) %>
     </th>
     <% end %>
     </tr>
+    <tr class="<%= cycle('odd', 'even') %>">
+      <td>
+        <%= l(:field_assignable) %>
+      </td>
+      <% @roles.each do |role| %>
+      <td align="center">
+        <% unless role.builtin? %>
+        <% if role.assignable? %>
+        <span style="padding-left: 10px;" class="icon icon-checked"></span>
+        <% else %>
+        -
+        <% end %>
+        <% end %>
+      </td>
+      <% end %>
+    </tr>
+    <tr class="<%= cycle('odd', 'even') %>">
+      <td>
+        <%= l(:field_issues_visibility) %>
+      </td>
+      <% @roles.each do |role| %>
+      <td align="center">
+        <% unless role.anonymous? %>
+        <span style="padding-left: 10px;"><%= l(Role::ISSUES_VISIBILITY_OPTIONS.to_h[role.issues_visibility]) %></span>
+        <% end %>
+      </td>
+      <% end %>
+    </tr>
+    <tr class="<%= cycle('odd', 'even') %>">
+      <td>
+        <%= l(:field_time_entries_visibility) %>
+      </td>
+      <% @roles.each do |role| %>
+      <td align="center">
+        <% unless role.anonymous? %>
+        <span style="padding-left: 10px;"><%= l(Role::TIME_ENTRIES_VISIBILITY_OPTIONS.to_h[role.time_entries_visibility]) %></span>
+        <% end %>
+      </td>
+      <% end %>
+    </tr>
+    <tr class="<%= cycle('odd', 'even') %>">
+      <td>
+        <%= l(:field_users_visibility) %>
+      </td>
+      <% @roles.each do |role| %>
+      <td align="center">
+        <span style="padding-left: 10px;"><%= l(Role::USERS_VISIBILITY_OPTIONS.to_h[role.users_visibility]) %></span>
+      </td>
+      <% end %>
+    </tr>
 </thead>
 <tbody>
-<% perms_by_module = @permissions.group_by {|p| p.project_module.to_s} %>
-<% perms_by_module.keys.sort.each do |mod| %>
+  <tr>
+    <th ondblclick="show_rows();">
+      <span class="icon icon-expended" onclick="toggleRowGroup(this); return false;">&nbsp;</span>
+      <%=l(:label_project)%>
+    </th>
+    <% @roles.each do |role| %>
+    <th ondblclick="hide_row(this);">
+      <%= content_tag(role.builtin? ? 'em' : 'span', h(role.name)) %>
+    </th>
+    <% end %>
+  </tr>
+  <% perms_by_module = @permissions.group_by {|p| p.project_module.to_s} %>
+  <% perms_by_module.keys.sort.each do |mod| %>
     <% unless mod.blank? %>
         <tr class="group open">
           <th>
-            <span class="expander" onclick="toggleRowGroup(this); return false;">&nbsp;</span>
+            <span class="icon icon-expended" onclick="toggleRowGroup(this); return false;">&nbsp;</span>
             <%= l_or_humanize(mod, :prefix => 'project_module_') %>
           </th>
           <% @roles.each do |role| %>
@@ -51,12 +115,14 @@
   function hide_row(el) {
     index = $(el).index() + 1;
     $('thead tr th:nth-child('+index+')').hide();
+    $('thead tr td:nth-child('+index+')').hide();
     $('tbody tr th:nth-child('+index+')').hide();
     $('tbody tr td:nth-child('+index+')').hide();
   }
 
   function show_rows() {
     $('thead tr th').show();
+    $('thead tr td').show();
     $('tbody tr th').show();
     $('tbody tr td').show();
   }
