@@ -11,7 +11,12 @@ class InfoController < ApplicationController
   include GraphvizHelper
 
   def permissions
-    @roles = Role.sorted.all
+    @projects = Project.visible
+    @project = @projects.find_by_id(params[:project_id]) || @projects.find_by_identifier(params[:project_id])
+
+    @roles = Role.sorted
+    @roles = @roles.find(@project.members.map{|m| m.role_ids}.flatten.uniq) if @project
+    
     @permissions = Redmine::AccessControl.permissions.select { |p| !p.public? }
   end
 
