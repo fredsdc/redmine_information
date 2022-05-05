@@ -45,7 +45,7 @@
         <% @roles.each do |role| %>
         <td align="center">
           <% unless role.anonymous? %>
-          <span style="padding-left: 10px;"><%= l(Role::ISSUES_VISIBILITY_OPTIONS.to_h[role.issues_visibility]) %></span>
+          <span style="padding-left: 10px;"><%= role.has_permission?(:view_issues) ? l(Role::ISSUES_VISIBILITY_OPTIONS.to_h[role.issues_visibility]) : "-" %></span>
           <% end %>
         </td>
         <% end %>
@@ -57,7 +57,7 @@
         <% @roles.each do |role| %>
         <td align="center">
           <% unless role.anonymous? %>
-          <span style="padding-left: 10px;"><%= l(Role::TIME_ENTRIES_VISIBILITY_OPTIONS.to_h[role.time_entries_visibility]) %></span>
+          <span style="padding-left: 10px;"><%= role.has_permission?(:view_time_entries) ? l(Role::TIME_ENTRIES_VISIBILITY_OPTIONS.to_h[role.time_entries_visibility]) : "-" %></span>
           <% end %>
         </td>
         <% end %>
