@@ -9,7 +9,7 @@
     <h4>
       <%= roles.length == 1 ? l(:label_role) : l(:label_role_plural) %>:
       <% roles.each do |r| %>
-        <span class='role-<%= r.id %>-<%= name %>' onmouseover="aglow('.role-<%= r.id %>-<%= name %>')" onmouseout="uglow('.role-<%= r.id %>-<%= name %>')">
+        <span class='role-<%= r.id %>-<%= name %>' onmouseover="aglow('.role-<%= r.id %>-<%= name %>')" onmouseout="uglow('.role-<%= r.id %>-<%= name %>')" style="<%= 'font-weight: bold;' if r == role %>">
           <%= r.name %><%= r == roles.last ? "" : "," %>
         </span>
       <% end %>

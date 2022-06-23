@@ -6,21 +6,25 @@ module GraphvizHelper
   def build_json(role, tracker, workflows, name)
     new_issue_status_map = {}
     edges_map = {}
+    loops_map = {}
     workflows.each do |t|
-      next if t.old_status_id == t.new_status_id
       if t.old_status_id != 0
         key = t.old_status_id.to_s + '-' + t.new_status_id.to_s
         own = role.id == t.role_id
         author = t.author
         assignee = t.assignee
         always = !author && !assignee
-
-        edges_map[key] = {:u => t.old_status_id, :v => t.new_status_id, :roles => []} unless edges_map.include?(key)
-        edges_map[key][:own] ||= own
-        edges_map[key][:author] ||= own && author
-        edges_map[key][:assignee] ||= own && assignee
-        edges_map[key][:always] ||= own && always
-        edges_map[key][:roles] |= ["role-" + t.role_id.to_s + "-" + name] if eval(name)
+        if t.old_status_id == t.new_status_id
+          loops_map[t.old_status_id] = [] unless loops_map.include?(t.old_status_id)
+          loops_map[t.old_status_id] |= ["role-" + t.role_id.to_s + "-" + name] if eval(name)
+        else
+          edges_map[key] = {:u => t.old_status_id, :v => t.new_status_id, :roles => []} unless edges_map.include?(key)
+          edges_map[key][:own] ||= own
+          edges_map[key][:author] ||= own && author
+          edges_map[key][:assignee] ||= own && assignee
+          edges_map[key][:always] ||= own && always
+          edges_map[key][:roles] |= ["role-" + t.role_id.to_s + "-" + name] if eval(name)
+        end
       else
         new_issue_status_map[t.new_status_id] = 1
       end
@@ -49,12 +53,12 @@ module GraphvizHelper
       if workflows.pluck(:old_status_id, :new_status_id).flatten.uniq.include?(s.id)
         cls += ' state-possible'
       end
-      if workflows.where(:tracker_id => tracker, :old_status_id => s.id, :new_status_id => s.id).present?
-        pre_label = '⟳ '
-      else
-        pre_label = ''
-      end
-      { :id => s.id, :value => { :label => pre_label + s.name, :nodeclass => cls } }
+      label = '<div style="margin: 10px;">'
+      label += '<text class="' + loops_map[s.id].join(" ") + '"' +
+        (loops_map[s.id].join("-").split("-").include?(role.id.to_s) ? ' style="font-weight: bold;"' : ' style="color: lightgray;"') +
+        '>⟳</text>&nbsp;' if loops_map.include?(s.id)
+      label += '<text class="' + cls + '">' + s.name + '</text></div>'
+      { :id => s.id, :value => { :label => label, :nodeclass => cls } }
     end
 
     { :nodes => statuses_array, :edges => edges_array }
