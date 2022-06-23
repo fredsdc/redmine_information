@@ -7,6 +7,7 @@ module GraphvizHelper
     new_issue_status_map = {}
     edges_map = {}
     workflows.each do |t|
+      next if t.old_status_id == t.new_status_id
       if t.old_status_id != 0
         key = t.old_status_id.to_s + '-' + t.new_status_id.to_s
         own = role.id == t.role_id
@@ -48,7 +49,12 @@ module GraphvizHelper
       if workflows.pluck(:old_status_id, :new_status_id).flatten.uniq.include?(s.id)
         cls += ' state-possible'
       end
-      { :id => s.id, :value => { :label => s.name, :nodeclass => cls } }
+      if workflows.where(:tracker_id => tracker, :old_status_id => s.id, :new_status_id => s.id).present?
+        pre_label = '⟳ '
+      else
+        pre_label = ''
+      end
+      { :id => s.id, :value => { :label => pre_label + s.name, :nodeclass => cls } }
     end
 
     { :nodes => statuses_array, :edges => edges_array }
