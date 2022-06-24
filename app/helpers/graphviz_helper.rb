@@ -53,11 +53,11 @@ module GraphvizHelper
       if workflows.pluck(:old_status_id, :new_status_id).flatten.uniq.include?(s.id)
         cls += ' state-possible'
       end
-      label = '<div style="margin: 9px;">'
-      label += '<text class="' + loops_map[s.id].join(" ") + '"' +
-        (loops_map[s.id].join("-").split("-").include?(role.id.to_s) ? ' style="font-weight: bold;"' : ' style="color: lightgray;"') +
-        '>⟳</text>&nbsp;' if loops_map.include?(s.id)
-      label += '<text class="' + cls + '">' + s.name + '</text></div>'
+      label = '<div style="margin: 10px;">'
+      label += '<text class="' + loops_map[s.id].join(" ") + '" style="' +
+        (loops_map[s.id].join("-").split("-").include?(role.id.to_s) ? 'font-weight: bold;' : 'color: lightgray;') +
+        '">⟳</text>&nbsp;' if loops_map.include?(s.id)
+      label += '<text class="' + cls + '" style="white-space: nowrap;">' + s.name + '</text></div>'
       { :id => s.id, :value => { :label => label, :nodeclass => cls } }
     end
 
