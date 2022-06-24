@@ -53,7 +53,7 @@ module GraphvizHelper
       if workflows.pluck(:old_status_id, :new_status_id).flatten.uniq.include?(s.id)
         cls += ' state-possible'
       end
-      label = '<div style="margin: 10px;">'
+      label = '<div style="margin: 9px;">'
       label += '<text class="' + loops_map[s.id].join(" ") + '"' +
         (loops_map[s.id].join("-").split("-").include?(role.id.to_s) ? ' style="font-weight: bold;"' : ' style="color: lightgray;"') +
         '>⟳</text>&nbsp;' if loops_map.include?(s.id)
