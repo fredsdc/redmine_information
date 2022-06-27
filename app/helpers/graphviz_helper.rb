@@ -54,9 +54,9 @@ module GraphvizHelper
         cls += ' state-possible'
       end
       label = '<div style="margin: 10px;">'
-      label += '<text class="' + loops_map[s.id].join(" ") + '" style="' +
+      label += '<text class="' + loops_map[s.id].join(" ") + '"><span style="' +
         (loops_map[s.id].join("-").split("-").include?(role.id.to_s) ? 'font-weight: bold;' : 'color: lightgray;') +
-        '">⟳</text>&nbsp;' if loops_map.include?(s.id)
+        '">⟳</span></text>&nbsp;' if loops_map.include?(s.id)
       label += '<text class="' + cls + '" style="white-space: nowrap;">' + s.name + '</text></div>'
       { :id => s.id, :value => { :label => label, :nodeclass => cls } }
     end
