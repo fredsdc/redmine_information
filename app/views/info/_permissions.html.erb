@@ -1,9 +1,12 @@
 
 <p><label><%=l(:label_project)%>:
-  <select id="project_id" class="expandable" onchange="location.href=location.href.split('?')[0] + '?project_id=' + this.options[this.selectedIndex].value;">
+  <select id="project_id" onchange="location.href=location.href.split('?')[0] + '?project_id=' + this.options[this.selectedIndex].value;">
     <%= options_for_select([[l(:label_member_management_all_roles), '']]) %>
     <%= project_tree_options_for_select(@projects, :selected => @project) %>
   </select>
+  <% if User.current.admin? & @roles.present? %>
+    &nbsp;<%= link_to '', permissions_roles_path(:ids => @roles.map(&:id)), :class => "icon icon-settings" %>
+  <% end %>
 </label></p>
 <% if @roles.empty? %>
   <p class="nodata"><%= l(:label_no_data) %></p>
